@@ -1,0 +1,14 @@
+name: automaton_generator
+description: The `automaton generator` is a low-level generator for use with generators of converters (encoders/decoders), scanners, parsers, state machines and the like
+version: 1.0.0
+homepage: https://github.com/mezoni/automaton_generator
+topics:
+  - automaton
+  - state-machine
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+dependencies:
+  simple_sparse_list: ^0.1.4
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.8
