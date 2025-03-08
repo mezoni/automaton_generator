@@ -2,7 +2,7 @@
 
 An automaton generator is a code generator (codegen) for use in generators of converters, scanners, parsers, state machines, etc.
 
-Version: 2.0.3
+Version: 2.0.4
 
 [![Pub Package](https://img.shields.io/pub/v/automaton_generator.svg)](https://pub.dev/packages/automaton_generator)
 [![GitHub Issues](https://img.shields.io/github/issues/mezoni/automaton_generator.svg)](https://github.com/mezoni/automaton_generator/issues)
@@ -67,14 +67,14 @@ During code generation, all intermediate `rejection` points will be removed, all
 Thus, either a successful exit (`acceptance`) with transfer of control will occur anywhere or at the lowest point control will be transferred forcibly (without any result).  
 
 Even a single `State` can be an `automaton` but to transform this `State` into an `automaton` it is necessary to `close` it, that is, finalize it, transforming it into an `acceptor`.  
-It is possible to use `return`, `continue` or `break` statements as `acceptors`. Or `shared` variable assignment `statement` if it is necessary for the computation to descend to a lower point and make a branch based on the analysis of the variable value (An example can be found in the `mux` function in the `extra` library.).
+It is possible to use `return`, `continue` or `break` statements as `acceptors`. Or `shared` variable assignment `statement` if it is necessary for the computation to descend to a lower point and make a branches based on the analysis of the variable value (an example can be found in the `mux` function in the [extra](https://github.com/mezoni/automaton_generator/blob/main/lib/extra.dart) library.).
 
-It is not very convenient to `close` all end states 'manually' correctly, and therefore there is a special generator (`AutomatonGenerator`) and an auxiliary helper function `automaton` for this purpose. In fact, this is a wrapper for the generator.
+It is not very convenient to `close` all end states "manually" correctly, and therefore there is a special generator (`AutomatonGenerator`) and an auxiliary helper function `automaton` for this purpose. In fact, this is a wrapper for the generator.
 
 ## How to use this software?
 
 For convenient code generation, it is not enough to use only states.  
-For this purpose (and as an example of usage) the `extra` library has helper generator functions to simplify code generation.  
+For this purpose (and as an example of usage) the [extra](https://github.com/mezoni/automaton_generator/blob/main/lib/extra.dart) library has helper functions to simplify code generation.  
 These are the most commonly used general-purpose computations.  
 Below is a list of these functions:
 
@@ -89,7 +89,7 @@ Below is a list of these functions:
 - `procedureBody`
 - `recognize`
 - `skipMany`
-- `skipMany`
+- `skipMany1`
 
 All of them, except for the `recognize` function, are context-free generators.  
 The `recognize` function requires context parameters (`position` and `substring`), but can be used in most cases.  
@@ -772,7 +772,7 @@ class Audio {
   }
 }
 
-````
+```
 
 ## More complex examples
 
