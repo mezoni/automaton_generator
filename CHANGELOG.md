@@ -1,3 +1,7 @@
+## 2.0.3
+
+* Added new example.
+
 ## 2.0.2
 
 * Method `automaton` has been removed from class `State`.
