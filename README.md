@@ -1,8 +1,8 @@
 # automaton_generator
 
-An automaton generator is a code generator (codegen) for use in converter generators, scanners, parsers, final article generators, etc.
+An automaton generator is a code generator (codegen) for use in generators of converters, scanners, parsers, state machines, etc.
 
-Version: 2.0.0
+Version: 2.0.1
 
 [![Pub Package](https://img.shields.io/pub/v/automaton_generator.svg)](https://pub.dev/packages/automaton_generator)
 [![GitHub Issues](https://img.shields.io/github/issues/mezoni/automaton_generator.svg)](https://github.com/mezoni/automaton_generator/issues)
@@ -12,7 +12,7 @@ Version: 2.0.0
 
 ## What is an automaton generator?
 
-An automaton generator is a software for generating code in generators of converters, scanners, parsers, finite state machines, etc.  
+An automaton generator is a code generator (codegen) for use in generators of converters, scanners, parsers, state machines, etc.  
 It is a template-based branch code generator.  
 More precisely, a generator of an automaton consisting of states.  
 Each state is a computational unit and must necessarily define one of two (or usually both) template placeholders.  
@@ -33,17 +33,17 @@ These branches are ordered, meaning that the computations do not happen simultan
 The `Sequence` state generates sequential branches. The sequential branch is an indivisible alternative. If any element causes a failure, the entire sequence of computation will be rejected.  
 
 The most important kind of state is `Operation`.  
-The state of `operation` acts as a `transition` and as an `action`.  
+The `Operation` state acts as a `transition` and as an `action`.  
 That is, not a generator, but the source code in the template determines the `transition conditions`.  
 With this approach to implementation, the generator does not create any restrictions on the implementation of the automaton logic.  
 
 ## What is the difference between a state and an automaton?
 
 The `State` after code generation will contain placeholders (`{{@accept}}`, and/or `{{@reject}}`).  
-In fact, at this point in time, the `State` is in an intermediate state.  
+In fact, at this point in time, the `State` is in an intermediate condition.  
 It is ready for further use but it is not yet an automaton.  
 This is not yet an automaton, since an automaton implies the presence of acceptors.  
-`Acceptor` is a `State` that transfers control to another computing process.  
+`Acceptor` is a `State` that transfers control to another computation process.  
 In this condition, two actions can be performed on the `State`.
 
 - Subsequent state code injection
@@ -67,16 +67,15 @@ During code generation, all intermediate `rejection` points will be removed, all
 Thus, either a successful exit (`acceptance`) with transfer of control will occur anywhere or at the lowest point control will be transferred forcibly (without any result).  
 
 Even a single `State` can be an `automaton` but to transform this `State` into an `automaton` it is necessary to `close` it, that is, finalize it, transforming it into an `acceptor`.  
-It is possible to use `return`, `continue` or `break` statements as finalizes. Or `shared` variable assignment statement if it is necessary for the computation to descend to a lower point and make a branch based on the analysis of the variable value (An example can be found in the `mux` function in the `extra` library.).
+It is possible to use `return`, `continue` or `break` statements as `acceptors`. Or `shared` variable assignment `statement` if it is necessary for the computation to descend to a lower point and make a branch based on the analysis of the variable value (An example can be found in the `mux` function in the `extra` library.).
 
 It is not very convenient to `close` all end states 'manually' correctly, and therefore there is a special generator (`AutomatonGenerator`) and an auxiliary helper function `automaton` for this purpose. In fact, this is a wrapper for the generator.
 
 ## How to use this software?
 
-For convenient code generation, it is enough to use only states.  
-For this purpose, and as an example of usage, the `extra` library has helper generator functions to simplify code generation.  
+For convenient code generation, it is not enough to use only states.  
+For this purpose (and as an example of usage) the `extra` library has helper generator functions to simplify code generation.  
 These are the most commonly used general-purpose computations.  
-
 Below is a list of these functions:
 
 - `automaton`
@@ -134,12 +133,21 @@ void main(List<String> args) {
   }
 
   const unknownCommand = 'print(\'Unknown command: \$command\');';
-  states.add(Action(unknownCommand));
-  //states.add(Fatal(unknownCommand));
+
+  bool getMode() => true;
+  final ignoreFailures = getMode();
+  String? reject;
+  if (!ignoreFailures) {
+    reject = 'break;';
+    states.add(Fatal(unknownCommand));
+  } else {
+    states.add(Action(unknownCommand));
+  }
 
   final start = Choice(states);
   final startState = start.toState();
-  final s0 = automaton('void', startState, '{{@state}}', accept: 'continue;');
+  final s0 = automaton('void', startState, '{{@state}}',
+      accept: 'continue;', reject: reject);
   s0.generate(Allocator().allocate);
   final source = s0.source;
 
