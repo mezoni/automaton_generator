@@ -2,8 +2,6 @@ import 'dart:collection';
 
 import 'acceptor_collector.dart';
 import 'allocator.dart';
-import 'automaton.dart';
-import 'automaton_generator.dart';
 import 'state_generator.dart';
 import 'warning.dart';
 
@@ -170,13 +168,6 @@ abstract class State {
   }
 
   T accept<T>(StateVisitor<T> visitor);
-
-  State automaton(
-      String type, Automaton automaton, Map<String, String> values) {
-    final generator = AutomatonGenerator(automaton);
-    final state = generator.generate(type, this, values: values);
-    return state;
-  }
 
   String generate(Allocate allocate) {
     final generator = StateGenerator(allocate: allocate);
