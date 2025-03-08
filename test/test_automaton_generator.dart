@@ -301,7 +301,7 @@ void testMux() {
     final source = s0.source;
 
     const expected = r'''
-(int,)? $tmp = false;
+(int,)? $tmp;
 if (v == 1) {
   $tmp = (1,);
 }

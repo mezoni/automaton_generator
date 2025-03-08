@@ -1,7 +1,11 @@
+## 2.0.5
+
+* Fixed a bug in the `mux` function
+
 ## 2.0.4
 
 * Fixed typos
-* Fixed bug in `State.hasSingleOutput`
+* Fixed a bug in the `State.hasSingleOutput` getter.
 
 ## 2.0.3
 

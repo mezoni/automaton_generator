@@ -171,7 +171,7 @@ if ({{tmp}}) {
     return start;
   } else {
     const template = '''
-({{type}},)? {{tmp}} = false;
+({{type}},)? {{tmp}};
 {{@state}}
 if ({{tmp}}) {
   {{@accept}}
