@@ -1,8 +1,8 @@
 # automaton_generator
 
-The `automaton generator` is a low-level generator for use with generators of converters (encoders/decoders), scanners, parsers, state machines and the like
+An automaton generator is a code generator (codegen) for use in converter generators, scanners, parsers, final article generators, etc.
 
-Version: 1.0.0
+Version: 2.0.0
 
 [![Pub Package](https://img.shields.io/pub/v/automaton_generator.svg)](https://pub.dev/packages/automaton_generator)
 [![GitHub Issues](https://img.shields.io/github/issues/mezoni/automaton_generator.svg)](https://github.com/mezoni/automaton_generator/issues)
@@ -10,206 +10,140 @@ Version: 1.0.0
 [![GitHub Stars](https://img.shields.io/github/stars/mezoni/automaton_generator.svg)](https://github.com/mezoni/automaton_generator/stargazers)
 [![GitHub License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://raw.githubusercontent.com/mezoni/automaton_generator/main/LICENSE)
 
-## About this software
+## What is an automaton generator?
 
-The `automaton generator` is a low-level generator for use with generators of converters (encoders/decoders), scanners, parsers, state machines and the like.  
-This software was created primarily for use as a base code generator in a parser generator. But this method of use does not limit its purpose. Because it is a universal and abstract generator.  
-Why is it abstract? Because the generator and the generated code have no idea what they are doing and what the purpose is.
+An automaton generator is a software for generating code in generators of converters, scanners, parsers, finite state machines, etc.  
+It is a template-based branch code generator.  
+More precisely, a generator of an automaton consisting of states.  
+Each state is a computational unit and must necessarily define one of two (or usually both) template placeholders.  
+These are the `acceptance` and `rejection` placeholders.  
+They are specified in templates using special markers:
 
-Using this software directly can be a bit difficult due to the fact that it is a low-level generator. However, it is not impossible.  
-Higher (middle) level data structures may be implemented in the future, but they are not provided at this time.  
-The (middle) level (layer) structures is `virtual` compound statements.  
-Low-level nodes are not data structures that can be actually combined into data structures. Because the only data structure is the automaton.  
-The automaton has one input and multiple outputs.  
-This is roughly the same as machine instructions. Machine code does not have compound statements.  
-Yes, it is not machine code and it is not the same thing at all, but it is just nodes connected to each other.  
-In this case, a node is a piece of source code consisting of nodes, each of which is simultaneously a state, a transition, and an action (all in one, depending on what code is defined for the node.). And, in addition, it is a switch in the automaton to the `accepted` or `rejected` branch.  
+- `{{@accept}}`
+- `{{@reject}}`
 
-The generated code executes very, very fast.  All it does is switch between two states and direct execution to one of the branches.  
-Right or left, right or left, that's the whole logic of automaton.  
-This is the low level logic of operation.  
-The logic of higher-level operations can be as complex as necessary. But this requires a higher level generator, an application specific level generator.
+There are three kinds of states available for generating states:
 
-The simplest non-illogical node can be defined as follows.:  
+- `Choice`
+- `Sequence`
+- `Operation`
 
-```dart
-{{accept}}
-```
+The `Choice` state generates selective branches, where each branch is an `alternative`.  
+These branches are ordered, meaning that the computations do not happen simultaneously, but they are performed in the order specified.  
+The `Sequence` state generates sequential branches. The sequential branch is an indivisible alternative. If any element causes a failure, the entire sequence of computation will be rejected.  
 
-This is always a successful machine node.  
+The most important kind of state is `Operation`.  
+The state of `operation` acts as a `transition` and as an `action`.  
+That is, not a generator, but the source code in the template determines the `transition conditions`.  
+With this approach to implementation, the generator does not create any restrictions on the implementation of the automaton logic.  
 
-Another node:
+## What is the difference between a state and an automaton?
 
-```dart
-{{reject}}
-```
+The `State` after code generation will contain placeholders (`{{@accept}}`, and/or `{{@reject}}`).  
+In fact, at this point in time, the `State` is in an intermediate state.  
+It is ready for further use but it is not yet an automaton.  
+This is not yet an automaton, since an automaton implies the presence of acceptors.  
+`Acceptor` is a `State` that transfers control to another computing process.  
+In this condition, two actions can be performed on the `State`.
 
-This is not a logical node. Although it is possible that it could also be used, because from the point of view of the automaton this is a completely normal node.  
+- Subsequent state code injection
+- Finalization code injection (transformation into an `acceptor`)
 
-The most commonly used type of node:
-
-```dart
-{{accept}}
-{{reject}}
-```
-
-This is a bidirectional branching node.  
-
-A more practical example.  
-
-```dart
-if (condition) {
-  {{accept}}
-}
-{{reject}}
-```
-
-Is this some kind of language?  
-No. This is a normal source code template, where by convention `{{accept}}` and `{{reject}}` are placeholders for code from the subsequent nodes.  
-The automaton is built from such nodes.  
-
-Any node can execute another automaton within itself.  
-Typically this is required, whether a `parent-child` approach to implementation is necessary. Because such a concept cannot be implemented out of the box in practice. This requires the implementation of the embedded automaton.  
-
-Does this affect performance? No, no and no again.  
-The automaton does not have its own code. It is just generated virtual switches in one of two directions, without a single line of code.  
-
-Example:
-
-Node 1
-
-```dart
-1
-{{accept}}
-{{reject}}
-```
-
-Node 2
-
-```dart
-2
-{{accept}}
-{{reject}}
-```
-
-This is all self-logical automaton.  
-Below is a proof of the truth of the automaton concept.  
-
-```dart
-import 'package:automaton/automaton/allocator.dart';
-import 'package:automaton/automaton/automaton.dart';
-import 'package:automaton/automaton/automaton_generator.dart';
-import 'package:automaton/automaton/node_generator.dart';
-
-void main() {
-  final allocator = Allocator();
-  final nodeGenerator = NodeGenerator(allocator);
-  final n1 = nodeGenerator.code(_node1.$1, result: _node1.$2);
-  final n2 = nodeGenerator.code(_node2.$1, result: _node2.$2);
-  final seq = nodeGenerator.sequence([n1, n2]);
-  final automaton = Automaton(
-    accept: 'return {{result}};',
-    reject: '',
-    start: seq,
-  );
-  final automatonGenerator = AutomatonGenerator(
-    allocator: allocator,
-    automaton: automaton,
-  );
-  final code = automatonGenerator.generate();
-  print('''
-String automaton() {
- $code
-}''');
-}
-
-const _node1 = (
-  '''
-1
-{{accept}}
-{{reject}}
-''',
-  '1'
-);
-
-const _node2 = (
-  '''
-2
-{{accept}}
-{{reject}}
-''',
-  'Hello!'
-);
-
-```
-
-Output:  
+Subsequent state code injection is the process of placing the source code of the subsequent `State` into the appropriate placeholder.  
+That is, it is part of the process of building a code base based on templates with placeholders for nested code.  
+In fact, the templates may seem strange because it is not entirely clear how such code can work.  
 
 ```text
-String automaton() {
- 1
-2
-return Hello!;
-
+if (condition) {
+  {{@accept}}
 }
+{{@reject}}
 ```
 
-There is not a single piece of code in it that would add automaton, but it works as defined.
+Why will the `rejection` code never execute the code after the `acceptance` code has finished executing?  
+The answer is very simple, the `acceptance` code will never return control to the `rejection` code  if `acceptance` branch of computation completes successfully.  
+Otherwise (if the `acceptance` branch `rejects` computation), code execution will continue down until it reaches the lowest `rejection` point.  
+During code generation, all intermediate `rejection` points will be removed, allowing alternative code to be executed.  
+Thus, either a successful exit (`acceptance`) with transfer of control will occur anywhere or at the lowest point control will be transferred forcibly (without any result).  
 
-Below is an example of a very primitive generator. This is not a very correct way to create a generator, but it demonstrates the capabilities of the automaton generator.
+Even a single `State` can be an `automaton` but to transform this `State` into an `automaton` it is necessary to `close` it, that is, finalize it, transforming it into an `acceptor`.  
+It is possible to use `return`, `continue` or `break` statements as finalizes. Or `shared` variable assignment statement if it is necessary for the computation to descend to a lower point and make a branch based on the analysis of the variable value (An example can be found in the `mux` function in the `extra` library.).
+
+It is not very convenient to `close` all end states 'manually' correctly, and therefore there is a special generator (`AutomatonGenerator`) and an auxiliary helper function `automaton` for this purpose. In fact, this is a wrapper for the generator.
+
+## How to use this software?
+
+For convenient code generation, it is enough to use only states.  
+For this purpose, and as an example of usage, the `extra` library has helper generator functions to simplify code generation.  
+These are the most commonly used general-purpose computations.  
+
+Below is a list of these functions:
+
+- `automaton`
+- `block`
+- `functionBody`
+- `many`
+- `many1`
+- `map`
+- `mux`
+- `optional`
+- `procedureBody`
+- `recognize`
+- `skipMany`
+- `skipMany`
+
+All of them, except for the `recognize` function, are context-free generators.  
+The `recognize` function requires context parameters (`position` and `substring`), but can be used in most cases.  
+
+## Simple example of usage
+
+Below is the source code for a simple state machine generator.  
+This is a free-form generator in its implementation approach.  
 
 ```dart
 import 'dart:io';
 
-import 'package:automaton/automaton/allocator.dart';
-import 'package:automaton/automaton/automaton.dart';
-import 'package:automaton/automaton/automaton_generator.dart';
-import 'package:automaton/automaton/node.dart';
-import 'package:automaton/automaton/node_generator.dart';
+import 'package:automaton_generator/allocator.dart';
+import 'package:automaton_generator/extra.dart';
+import 'package:automaton_generator/helper.dart';
+import 'package:automaton_generator/state.dart';
 
 void main(List<String> args) {
   final definitions = [
     ('turn_on', ['!power'], 'power = true; volume = 2;'),
-    ('turn_off', ['power'], 'power = false;'),
+    ('turn_off', ['power'], 'power = false; volume = 0 ;'),
     ('volume_up', ['volume < 5', 'power'], 'volume++;'),
     ('volume_down', ['volume > 0', 'power'], 'volume--;'),
   ];
-  final allocator = Allocator();
-  final nodeGenerator = NodeGenerator(allocator);
-  final h = _Helper(NodeGenerator(allocator));
-  final alternatives = <Node>[];
+
+  final states = <Operation>[];
+  const printState = 'print(\'power: \$power, volume: \$volume\');';
   for (final definition in definitions) {
-    final command = definition.$1;
-    final stateTest = definition.$2.join(' && ');
-    final action = definition.$3;
-    final checkCommand = h.check("command == '$command'");
-    final checkState = h.check(stateTest);
-    final performAction = h.action(action);
-    final showState = h.action(r"print('power: $power, volume: $volume');");
-    final notification = h.action('''print("Command '$command' rejected");''');
-    final success =
-        nodeGenerator.sequence([checkState, performAction, showState]);
-    final failure = notification;
-    final alternative = nodeGenerator.sequence([
-      checkCommand,
-      nodeGenerator.choice([success, failure]),
-    ]);
-    alternatives.add(alternative);
+    final commandName = escapeString(definition.$1, '"');
+    final commandCondition = definition.$2.join(' && ');
+    final commandAction = definition.$3;
+    final testCommand = Test('command == $commandName');
+    final testCondition = Test(commandCondition);
+    final work = Action(commandAction);
+    final showState = Action(printState);
+    final notifyRejected = Action('print(\'Command $commandName rejected\');');
+    final onRejected = showState + notifyRejected;
+    final state =
+        testCommand + ((testCondition + work + showState) | onRejected);
+    states.add(state);
   }
 
-  alternatives.add(h.action(r"print('Unknown command: $command');"));
-  final start = nodeGenerator.choice(alternatives);
-  final automaton = Automaton(
-    accept: 'continue;',
-    reject: '',
-    start: start,
-  );
-  final automatonGenerator = AutomatonGenerator(
-    allocator: allocator,
-    automaton: automaton,
-  );
-  final code = automatonGenerator.generate();
-  final stateMachine = '''
+  const unknownCommand = 'print(\'Unknown command: \$command\');';
+  states.add(Action(unknownCommand));
+  //states.add(Fatal(unknownCommand));
+
+  final start = Choice(states);
+  final startState = start.toState();
+  final s0 = automaton('void', startState, '{{@state}}', accept: 'continue;');
+  s0.generate(Allocator().allocate);
+  final source = s0.source;
+
+  final library = '''
 import 'dart:collection';
 
 void main(List<String> args) {
@@ -244,75 +178,133 @@ class Audio {
   void execute() {
     while (commands.isNotEmpty) {
       final command = commands.removeFirst();
-      print('*' * 40);
+      print('-' * 40);
       print(command);
-      $code
+      $source
     }
   }
 }''';
   const outputFile = 'example/example.dart';
-  File(outputFile).writeAsStringSync(stateMachine);
+  File(outputFile).writeAsStringSync(library);
   Process.runSync(Platform.executable, ['format', outputFile]);
 }
 
-class _Helper {
-  final NodeGenerator g;
+class Action extends Operation {
+  final String source;
 
-  _Helper(this.g);
+  Action(this.source);
 
-  Node action(String code) {
-    return g.code('''
-$code
-{{accept}}
-{{reject}}''');
+  @override
+  State toState() {
+    final template = '''
+$source
+{{@accept}}
+''';
+    final state = OperationState('void', template);
+    return state;
+  }
+}
+
+class Choice extends Operation {
+  final List<Operation> operations;
+
+  Choice(this.operations);
+
+  @override
+  State toState() {
+    return ChoiceState('void', operations.map((e) => e.toState()).toList());
+  }
+}
+
+class Command extends Operation {
+  final String name;
+
+  Command(this.name);
+
+  @override
+  State toState() {
+    final escapedName = escapeString(name);
+    final template = '''
+if (command == $escapedName) {
+  {{@accept}}
+}
+{{@reject}}''';
+    final state = OperationState('void', template);
+    return state;
+  }
+}
+
+class Fatal extends Operation {
+  final String source;
+
+  Fatal(this.source);
+
+  @override
+  State toState() {
+    final template = '''
+$source
+{{@reject}}
+''';
+    final state = OperationState('void', template);
+    return state;
+  }
+}
+
+abstract class Operation {
+  State toState();
+}
+
+class Sequence extends Operation {
+  final List<Operation> operations;
+
+  Sequence(this.operations);
+
+  @override
+  State toState() {
+    return SequenceState(operations.map((e) => e.toState()).toList());
+  }
+}
+
+class Test extends Operation {
+  final String condition;
+
+  Test(this.condition);
+
+  @override
+  State toState() {
+    final template = '''
+if ($condition) {
+  {{@accept}}
+}
+{{@reject}}''';
+    final state = OperationState('void', template);
+    return state;
+  }
+}
+
+extension on Operation {
+  Sequence operator +(Operation operation) {
+    if (this case final Sequence sequence) {
+      sequence.operations.add(operation);
+      return sequence;
+    } else {
+      return Sequence([this, operation]);
+    }
   }
 
-  Node check(String predicate) {
-    return g.code('''
-if ($predicate) {
-  {{accept}}
-}
-{{reject}}''');
+  Choice operator |(Operation operation) {
+    if (this case final Choice choice) {
+      choice.operations.add(operation);
+      return choice;
+    } else {
+      return Choice([this, operation]);
+    }
   }
 }
 
 ```
 
-The generated code, when executed, produces the following output.
-
-```text
-****************************************
-turn_off
-Command 'turn_off' rejected
-****************************************
-turn_on
-power: true, volume: 2
-****************************************
-volume_up
-power: true, volume: 3
-****************************************
-volume_up
-power: true, volume: 4
-****************************************
-volume_up
-power: true, volume: 5
-****************************************
-volume_up
-Command 'volume_up' rejected
-****************************************
-volume_down
-power: true, volume: 4
-****************************************
-good_buy
-Unknown command: good_buy
-****************************************
-turn_off
-power: false, volume: 4
-```
-
-Once again, it is necessary to remind that this is a basic, primitive example of creating a generator.  
-
-Below is the source code of the application (user code and automaton code).  
+This free-form generator generates the following source code:
 
 ```dart
 import 'dart:collection';
@@ -349,65 +341,93 @@ class Audio {
   void execute() {
     while (commands.isNotEmpty) {
       final command = commands.removeFirst();
-      print('*' * 40);
+      print('-' * 40);
       print(command);
-      {
-        if (command == 'turn_on') {
-          {
-            if (!power) {
-              power = true;
-              volume = 2;
-              print('power: $power, volume: $volume');
-              continue;
-            }
-          }
-          print("Command 'turn_on' rejected");
+      if (command == "turn_on") {
+        if (!power) {
+          power = true;
+          volume = 2;
+          print('power: $power, volume: $volume');
           continue;
         }
+        print('power: $power, volume: $volume');
+        print('Command "turn_on" rejected');
+        continue;
       }
-      {
-        if (command == 'turn_off') {
-          {
-            if (power) {
-              power = false;
-              print('power: $power, volume: $volume');
-              continue;
-            }
-          }
-          print("Command 'turn_off' rejected");
+      if (command == "turn_off") {
+        if (power) {
+          power = false;
+          volume = 0;
+          print('power: $power, volume: $volume');
           continue;
         }
+        print('power: $power, volume: $volume');
+        print('Command "turn_off" rejected');
+        continue;
       }
-      {
-        if (command == 'volume_up') {
-          {
-            if (volume < 5 && power) {
-              volume++;
-              print('power: $power, volume: $volume');
-              continue;
-            }
-          }
-          print("Command 'volume_up' rejected");
+      if (command == "volume_up") {
+        if (volume < 5 && power) {
+          volume++;
+          print('power: $power, volume: $volume');
           continue;
         }
+        print('power: $power, volume: $volume');
+        print('Command "volume_up" rejected');
+        continue;
       }
-      {
-        if (command == 'volume_down') {
-          {
-            if (volume > 0 && power) {
-              volume--;
-              print('power: $power, volume: $volume');
-              continue;
-            }
-          }
-          print("Command 'volume_down' rejected");
+      if (command == "volume_down") {
+        if (volume > 0 && power) {
+          volume--;
+          print('power: $power, volume: $volume');
           continue;
         }
+        print('power: $power, volume: $volume');
+        print('Command "volume_down" rejected');
+        continue;
       }
       print('Unknown command: $command');
       continue;
     }
   }
 }
-
 ```
+
+That is, without much effort, a simple state machine code generator was created.  
+
+An example of a state machine in operation.
+
+```text
+----------------------------------------
+turn_off
+power: false, volume: 2
+Command "turn_off" rejected
+----------------------------------------
+turn_on
+power: true, volume: 2
+----------------------------------------
+volume_up
+power: true, volume: 3
+----------------------------------------
+volume_up
+power: true, volume: 4
+----------------------------------------
+volume_up
+power: true, volume: 5
+----------------------------------------
+volume_up
+power: true, volume: 5
+Command "volume_up" rejected
+----------------------------------------
+volume_down
+power: true, volume: 4
+----------------------------------------
+good_buy
+Unknown command: good_buy
+----------------------------------------
+turn_off
+power: false, volume: 0
+```
+
+## More complex examples
+
+More complex application examples will be provided later.  

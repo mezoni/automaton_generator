@@ -1,52 +1,64 @@
-import 'allocator.dart';
+import 'acceptor_collector.dart';
 import 'automaton.dart';
-import 'node.dart';
+import 'renderer.dart';
+import 'state.dart';
 
-/// The [AutomatonGenerator] is a generator of the automaton source code.
 class AutomatonGenerator {
-  /// Identifier allocator.
-  final Allocator allocator;
-
-  /// Automaton definition.
   final Automaton automaton;
 
-  AutomatonGenerator({
-    required this.allocator,
-    required this.automaton,
-  });
+  const AutomatonGenerator(this.automaton);
 
-  /// Generates the source code of the automaton.
-  String generate() {
-    return _generate(automaton.start, {});
-  }
+  State generate(
+    String type,
+    State state, {
+    Map<String, String> values = const {},
+  }) {
+    final start = OperationState(
+      type,
+      automaton.template,
+      result: automaton.result,
+      values: values,
+    );
 
-  String _generate(Node node, Set<Node> processed) {
-    if (!processed.add(node)) {
-      throw StateError('''Recursive node:
-Node template: ${node.template}''');
-    }
+    start.listen((allocate) {
+      final collector = AcceptorCollector();
+      final lastAcceptor = collector.collect(state).last;
+      state.listenToAcceptors((acceptor, allocate) {
+        final renderedValues = {
+          ...start.renderedValues,
+          ...acceptor.renderedValues,
+        };
 
-    final result = node.result;
-    var template = node.template;
-    final accept = node.getAccept();
-    if (accept != null) {
-      final code = _generate(accept, processed);
-      template = template.replaceAll('{{accept}}', code);
-    } else {
-      var code = automaton.accept;
-      code = code.replaceAll('{{result}}', result);
-      template = template.replaceAll('{{accept}}', code);
-    }
+        final branchResult = automaton.branchResult;
+        if (branchResult != null) {
+          acceptor.result = branchResult.render(
+            renderedValues,
+            allocate,
+            {},
+          );
+        }
 
-    final reject = node.getReject();
-    if (reject != null) {
-      final code = _generate(reject, processed);
-      template = template.replaceAll('{{reject}}', code);
-    } else {
-      final code = automaton.reject;
-      template = template.replaceAll('{{reject}}', code);
-    }
+        String? acceptance;
+        final accept = automaton.accept;
+        if (accept != null) {
+          acceptance = accept.render(renderedValues, allocate, {});
+          acceptance = acceptance.replaceAll('{{0}}', acceptor.result);
+        }
 
-    return template;
+        if (acceptor != lastAcceptor) {
+          acceptor.renderAcceptance(acceptance);
+        } else {
+          final hasAccept = acceptor.source.contains(State.acceptPlaceholder);
+          if (hasAccept) {
+            acceptor.renderAcceptance(acceptance);
+          }
+        }
+      });
+      state.generate(allocate);
+      state.renderRejection(automaton.reject);
+      start.source =
+          start.source.replaceAll(automaton.placeholder, state.source);
+    });
+    return start;
   }
 }

@@ -15,3 +15,5 @@ class Allocator {
     _indexes.clear();
   }
 }
+
+typedef Allocate = String Function([String]);

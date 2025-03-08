@@ -32,60 +32,49 @@ class Audio {
   void execute() {
     while (commands.isNotEmpty) {
       final command = commands.removeFirst();
-      print('*' * 40);
+      print('-' * 40);
       print(command);
-      {
-        if (command == 'turn_on') {
-          {
-            if (!power) {
-              power = true;
-              volume = 2;
-              print('power: $power, volume: $volume');
-              continue;
-            }
-          }
-          print("Command 'turn_on' rejected");
+      if (command == "turn_on") {
+        if (!power) {
+          power = true;
+          volume = 2;
+          print('power: $power, volume: $volume');
           continue;
         }
+        print('power: $power, volume: $volume');
+        print('Command "turn_on" rejected');
+        continue;
       }
-      {
-        if (command == 'turn_off') {
-          {
-            if (power) {
-              power = false;
-              print('power: $power, volume: $volume');
-              continue;
-            }
-          }
-          print("Command 'turn_off' rejected");
+      if (command == "turn_off") {
+        if (power) {
+          power = false;
+          volume = 0;
+          print('power: $power, volume: $volume');
           continue;
         }
+        print('power: $power, volume: $volume');
+        print('Command "turn_off" rejected');
+        continue;
       }
-      {
-        if (command == 'volume_up') {
-          {
-            if (volume < 5 && power) {
-              volume++;
-              print('power: $power, volume: $volume');
-              continue;
-            }
-          }
-          print("Command 'volume_up' rejected");
+      if (command == "volume_up") {
+        if (volume < 5 && power) {
+          volume++;
+          print('power: $power, volume: $volume');
           continue;
         }
+        print('power: $power, volume: $volume');
+        print('Command "volume_up" rejected');
+        continue;
       }
-      {
-        if (command == 'volume_down') {
-          {
-            if (volume > 0 && power) {
-              volume--;
-              print('power: $power, volume: $volume');
-              continue;
-            }
-          }
-          print("Command 'volume_down' rejected");
+      if (command == "volume_down") {
+        if (volume > 0 && power) {
+          volume--;
+          print('power: $power, volume: $volume');
           continue;
         }
+        print('power: $power, volume: $volume');
+        print('Command "volume_down" rejected');
+        continue;
       }
       print('Unknown command: $command');
       continue;
