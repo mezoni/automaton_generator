@@ -15,7 +15,14 @@ class ChoiceState extends GroupingState {
   });
 
   @override
-  bool get hasSingleOutput => states.length < 2;
+  bool get hasSingleOutput {
+    if (states.length > 1) {
+      return false;
+    } else {
+      final first = states.first;
+      return first.hasSingleOutput;
+    }
+  }
 
   @override
   T accept<T>(StateVisitor<T> visitor) {
@@ -72,6 +79,9 @@ class OperationState extends State {
   });
 
   @override
+  bool get hasSingleOutput => true;
+
+  @override
   T accept<T>(StateVisitor<T> visitor) {
     return visitor.visitOperation(this);
   }
@@ -126,7 +136,7 @@ abstract class State {
     this.result = 'null',
   });
 
-  bool get hasSingleOutput => true;
+  bool get hasSingleOutput;
 
   State? get next {
     return _next;

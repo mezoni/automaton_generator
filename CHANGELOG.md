@@ -1,6 +1,7 @@
 ## 2.0.4
 
 * Fixed typos
+* Fixed bug in `State.hasSingleOutput`
 
 ## 2.0.3
 
