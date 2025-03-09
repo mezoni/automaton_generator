@@ -2,7 +2,7 @@
 
 An automaton generator is a code generator (codegen) for use in generators of converters, scanners, parsers, state machines, etc.
 
-Version: 2.0.7
+Version: 2.0.8
 
 [![Pub Package](https://img.shields.io/pub/v/automaton_generator.svg)](https://pub.dev/packages/automaton_generator)
 [![GitHub Issues](https://img.shields.io/github/issues/mezoni/automaton_generator.svg)](https://github.com/mezoni/automaton_generator/issues)
@@ -62,15 +62,17 @@ if (condition) {
 {{@reject}}
 ```
 
-Or another example, with a `recovery` code.
+Another, more complex, example, with a `failure registration` code and a `recovery` code.
 
 ```text
 final {{pos}} = scanner.position;
 if (condition) {
   {{@accept}}
 } else {
-  scanner.position = {{pos}};
+  // failure registration
 }
+// Recovery
+scanner.position = {{pos}};
 {{@reject}}
 ```
 
@@ -112,7 +114,7 @@ The `recognize` function requires context parameters (`position` and `substring`
 ## Simple example of usage
 
 In order to reduce duplicate code, a `helper` library will be used in the examples. It is used exclusively to simplify code generation.  
-Also, the need for such `helper` libraries arises because the an automaton states are primitive and very limited objects. In fact, they should be considered as `instructions` (and data structures) of an `intermediate` language.
+Also, the need for such `helper` libraries arises because the automaton states are primitive and very limited objects. In fact, they should be considered as `instructions` (and data structures) of an `intermediate` language.
 
 Below is the source code for the `helper` library.
 
