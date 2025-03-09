@@ -45,7 +45,7 @@ class S {
   void add(String name, S state) {
     if (commands.containsKey(name)) {
       final state = commands[name];
-      throw StateError('Transition \'$name\' already exists: $state');
+      throw StateError('Command \'$name\' already exists: $state');
     }
 
     commands[name] = state;
