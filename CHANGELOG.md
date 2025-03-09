@@ -2,6 +2,7 @@
 
 * Fixed typos
 * The documentation has been slightly improved.
+* Added new example.
 
 ## 2.0.8
 
