@@ -174,9 +174,7 @@ Another way to implement such a generator.
 
 This generator generates the following source code:
 
-```dart
-{{example\example_async_command_machine.dart}}
-```
+{{@example\example_async_command_machine.dart}}
 
 ## Example of a state machine
 
