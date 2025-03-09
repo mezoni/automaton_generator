@@ -1,6 +1,6 @@
 name: automaton_generator
 description: An automaton generator is a code generator (codegen) for use in generators of converters, scanners, parsers, state machines, etc.
-version: 2.0.9
+version: 2.0.10
 homepage: https://github.com/mezoni/automaton_generator
 topics:
   - codegen

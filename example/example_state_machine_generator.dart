@@ -70,7 +70,7 @@ Command: $cmd
   });
 
   door.addListener((command,  previous, current) {
-    if (command == {{name}}Command.open) {
+    if (current == {{name}}State.open) {
       final now = DateTime.now();
       print('Hello, I am a door watcher, the door was open at $now');
     }
@@ -81,7 +81,7 @@ Command: $cmd
   });
 
   door.addListener((command,  previous, current) {
-    if (command == {{name}}Command.close) {
+    if (current == {{name}}State.closed) {
       print('Good bye!');
     }
   });
