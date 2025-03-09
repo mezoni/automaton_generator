@@ -2,7 +2,7 @@
 
 An automaton generator is a code generator (codegen) for use in generators of converters, scanners, parsers, state machines, etc.
 
-Version: 2.0.5
+Version: 2.0.6
 
 [![Pub Package](https://img.shields.io/pub/v/automaton_generator.svg)](https://pub.dev/packages/automaton_generator)
 [![GitHub Issues](https://img.shields.io/github/issues/mezoni/automaton_generator.svg)](https://github.com/mezoni/automaton_generator/issues)
