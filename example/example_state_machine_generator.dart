@@ -14,8 +14,7 @@ void main(List<String> args) {
   open.add('close', closed);
   closed.add('lock', locked);
   locked.add('unlock', closed);
-  sm.start = closed;
-  final source = sm.generate();
+  final source = sm.generate(closed);
   const outputFile = 'example/example_state_machine.dart';
   File(outputFile).writeAsStringSync(source);
   Process.runSync(Platform.executable, ['format', outputFile]);
@@ -102,7 +101,7 @@ class {{name}}Machine {
     {{name}}State current,
   )>[];
 
-  {{name}}State _state = {{name}}State.closed;
+  {{name}}State _state = {{name}}State.{{initial}};
 
   {{name}}Machine(this.onError);
 
@@ -149,8 +148,6 @@ enum {{name}}State { {{states}} }
 
   final String name;
 
-  S? start;
-
   final Map<String, S> states = {};
 
   StateMachine(this.name);
@@ -165,7 +162,7 @@ enum {{name}}State { {{states}} }
     return state;
   }
 
-  String generate() {
+  String generate(S initial) {
     String stateExpr(S s) {
       return '${name}State.$s';
     }
@@ -206,6 +203,8 @@ enum {{name}}State { {{states}} }
     stateList.sort();
     commandList.sort();
     var template = _template;
+
+    template = template.replaceAll('{{initial}}', initial.name);
     template = template.replaceAll('{{name}}', name);
     template = template.replaceAll('{{@state}}', s0.source);
     template = template.replaceAll('{{commands}}', commandList.join(', '));
