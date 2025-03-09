@@ -7,6 +7,10 @@ import 'warning.dart';
 
 typedef Listener = void Function(String Function([String]) allocate);
 
+/// The [ChoiceState] is a [GroupingState].
+///
+/// This state implements the functionality for selective method of the ordered
+/// branching computations.
 class ChoiceState extends GroupingState {
   ChoiceState(
     super.type,
@@ -92,6 +96,10 @@ class OperationState extends State {
   }
 }
 
+/// The [SequenceState] is a [GroupingState].
+///
+/// This state implements the functionality for sequential method of the
+/// branching computations.
 class SequenceState extends GroupingState {
   SequenceState(List<State> states) : super('void', states);
 
@@ -112,6 +120,7 @@ class SequenceState extends GroupingState {
   }
 }
 
+/// The base supertype of all states.
 abstract class State {
   static const acceptPlaceholder = '{{@accept}}';
 
@@ -245,23 +254,14 @@ ${source.trim()}''');
   }
 }
 
+/// The [StateVisitor] is an interface of [State] visitors.
 abstract class StateVisitor<T> {
+  /// Visits the [ChoiceState] node.
   T visitChoice(ChoiceState node);
 
+  /// Visits the [OperationState] node.
   T visitOperation(OperationState node);
 
+  /// Visits the [SequenceState] node.
   T visitSequence(SequenceState node);
-}
-
-mixin StateVisitorMixin<T> implements StateVisitor<T> {
-  @override
-  T visitChoice(ChoiceState node) => visitNode(node);
-
-  T visitNode(State node);
-
-  @override
-  T visitOperation(OperationState node) => visitNode(node);
-
-  @override
-  T visitSequence(SequenceState node) => visitNode(node);
 }

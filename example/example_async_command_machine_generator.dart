@@ -117,7 +117,7 @@ power = false; volume = 0;
 [state.volume_up]
 condition = 'volume < 5 && power'
 accept = '''
-volume++;;
+volume++;
 '''
 
 [state.volume_down]

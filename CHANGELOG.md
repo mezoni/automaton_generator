@@ -1,3 +1,8 @@
+## 2.0.9
+
+* Fixed typos
+* The documentation has been slightly improved.
+
 ## 2.0.8
 
 * Fixed typos

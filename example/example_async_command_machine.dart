@@ -59,7 +59,6 @@ class Audio {
     if (command == "volume_up") {
       if (volume < 5 && power) {
         volume++;
-        ;
         print('power: $power, volume: $volume');
         return;
       }
